@@ -1,12 +1,81 @@
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const headerHeight = () =>
+  document.querySelector(".site-header")?.getBoundingClientRect().height || 0;
 
-const menuButton = document.querySelector(".menu-toggle");
-const mobileMenu = document.querySelector(".mobile-menu");
-const mobileLinks = document.querySelectorAll(".mobile-menu a");
+let lenisScroller = null;
+let closeMobileMenu = () => {};
 
-if (menuButton && mobileMenu) {
+const parseDatasetArray = (value) => {
+  if (!value) return [];
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return value
+      .split("|")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+};
+
+const splitIntoCharacters = (text) => {
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
+    const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" });
+    return Array.from(segmenter.segment(text), ({ segment }) => segment);
+  }
+
+  return Array.from(text);
+};
+
+const getStaggerDelay = (index, total, staggerFrom, staggerDuration) => {
+  if (staggerFrom === "first") return index * staggerDuration;
+  if (staggerFrom === "last") return (total - 1 - index) * staggerDuration;
+  if (staggerFrom === "center") {
+    const center = Math.floor(total / 2);
+    return Math.abs(center - index) * staggerDuration;
+  }
+  if (staggerFrom === "random") {
+    const randomIndex = Math.floor(Math.random() * total);
+    return Math.abs(randomIndex - index) * staggerDuration;
+  }
+
+  const numeric = Number(staggerFrom);
+  if (!Number.isNaN(numeric)) {
+    return Math.abs(numeric - index) * staggerDuration;
+  }
+
+  return index * staggerDuration;
+};
+
+const scrollToTarget = (target) => {
+  const offset = headerHeight() + 14;
+
+  if (lenisScroller && typeof lenisScroller.scrollTo === "function") {
+    lenisScroller.scrollTo(target, {
+      offset: -offset,
+      duration: 1.2,
+      easing: (t) => 1 - Math.pow(1 - t, 3),
+    });
+    return;
+  }
+
+  const top = target.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({
+    top,
+    behavior: prefersReducedMotion ? "auto" : "smooth",
+  });
+};
+
+const initMenuToggle = () => {
+  const menuButton = document.querySelector(".menu-toggle");
+  const mobileMenu = document.querySelector(".mobile-menu");
+  const mobileLinks = [...document.querySelectorAll(".mobile-menu a")];
+
+  if (!menuButton || !mobileMenu) return;
+
   const setMenuState = (open) => {
     menuButton.classList.toggle("is-open", open);
     menuButton.setAttribute("aria-expanded", String(open));
@@ -20,9 +89,11 @@ if (menuButton && mobileMenu) {
         if (!mobileMenu.classList.contains("is-open")) {
           mobileMenu.hidden = true;
         }
-      }, 220);
+      }, 260);
     }
   };
+
+  closeMobileMenu = () => setMenuState(false);
 
   menuButton.addEventListener("click", () => {
     const isOpen = menuButton.getAttribute("aria-expanded") === "true";
@@ -32,366 +103,612 @@ if (menuButton && mobileMenu) {
   mobileLinks.forEach((link) => {
     link.addEventListener("click", () => setMenuState(false));
   });
-}
 
-const dock = document.querySelector(".dock-nav");
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      setMenuState(false);
+    }
+  });
 
-if (dock) {
-  const dockItems = [...dock.querySelectorAll(".dock-nav__item")];
+  document.addEventListener("click", (event) => {
+    if (
+      mobileMenu.classList.contains("is-open") &&
+      !mobileMenu.contains(event.target) &&
+      !menuButton.contains(event.target)
+    ) {
+      setMenuState(false);
+    }
+  });
+};
 
-  const resetDock = () => {
+const initDock = () => {
+  const dock = document.querySelector("[data-dock]");
+
+  if (!dock) return;
+
+  const dockItems = [...dock.querySelectorAll(".dock-nav__item")].map((item) => ({
+    element: item,
+    current: 40,
+    velocity: 0,
+  }));
+
+  let mouseX = Number.POSITIVE_INFINITY;
+
+  const getTargetWidth = (distance) => {
+    if (!Number.isFinite(mouseX)) return 40;
+    const absDistance = Math.abs(distance);
+    if (absDistance >= 150) return 40;
+    return 80 - (absDistance / 150) * 40;
+  };
+
+  const animateDock = () => {
     dockItems.forEach((item) => {
-      item.style.setProperty("--dock-scale", "1");
-      item.style.setProperty("--dock-lift", "0px");
+      const bounds = item.element.getBoundingClientRect();
+      const center = bounds.left + bounds.width / 2;
+      const target = getTargetWidth(mouseX - center);
+      const force = (target - item.current) * 0.18;
+
+      item.velocity = (item.velocity + force) * 0.72;
+      item.current += item.velocity;
+
+      if (Math.abs(target - item.current) < 0.02 && Math.abs(item.velocity) < 0.02) {
+        item.current = target;
+        item.velocity = 0;
+      }
+
+      const iconScale = 1 + ((item.current - 40) / 40) * 0.5;
+      item.element.style.setProperty("--dock-size", `${item.current.toFixed(2)}px`);
+      item.element.style.setProperty("--dock-icon-scale", iconScale.toFixed(3));
     });
+
+    window.requestAnimationFrame(animateDock);
   };
 
   dock.addEventListener("pointermove", (event) => {
-    dockItems.forEach((item) => {
-      const rect = item.getBoundingClientRect();
-      const center = rect.left + rect.width / 2;
-      const distance = Math.abs(event.clientX - center);
-      const falloff = clamp(1 - distance / 180, 0, 1);
-      const scale = 1 + falloff * 0.42;
-      const lift = `${Math.round(falloff * -10)}px`;
-
-      item.style.setProperty("--dock-scale", scale.toFixed(3));
-      item.style.setProperty("--dock-lift", lift);
-    });
+    mouseX = event.clientX;
   });
 
-  dock.addEventListener("pointerleave", resetDock);
-  resetDock();
-}
+  dock.addEventListener("pointerleave", () => {
+    mouseX = Number.POSITIVE_INFINITY;
+  });
 
-const rotateTarget = document.querySelector("[data-rotate]");
+  animateDock();
+};
 
-if (rotateTarget) {
-  const words = (rotateTarget.dataset.words || "")
-    .split("|")
-    .map((word) => word.trim())
-    .filter(Boolean);
+const initHeroIntro = () => {
+  const floatingItems = [...document.querySelectorAll(".hero-float__item")];
+  const title = document.querySelector('[data-hero-intro="title"]');
+  const copy = document.querySelector('[data-hero-intro="copy"]');
+  const actions = document.querySelector('[data-hero-intro="actions"]');
 
-  let rotateIndex = 0;
-
-  const renderWord = (word) => {
-    rotateTarget.innerHTML = "";
-    [...word].forEach((character, index) => {
-      const span = document.createElement("span");
-      span.className = "hero-rotate__char";
-      span.style.setProperty("--char-index", index);
-      span.textContent = character === " " ? "\u00A0" : character;
-      rotateTarget.appendChild(span);
+  if (!window.gsap || prefersReducedMotion) {
+    floatingItems.forEach((item) => {
+      item.style.opacity = "1";
     });
-  };
-
-  if (words.length) {
-    renderWord(words[0]);
-
-    if (!prefersReducedMotion) {
-      window.setInterval(() => {
-        rotateIndex = (rotateIndex + 1) % words.length;
-        renderWord(words[rotateIndex]);
-      }, 2600);
-    }
+    return;
   }
-}
 
-const floatingRoot = document.querySelector("[data-floating-root]");
+  const gsap = window.gsap;
 
-if (floatingRoot && !prefersReducedMotion) {
-  const floatingCards = [...floatingRoot.querySelectorAll(".hero-card")];
-  let pointerX = 0;
-  let pointerY = 0;
-  let rafId = 0;
+  floatingItems.forEach((item) => {
+    gsap.fromTo(
+      item,
+      { autoAlpha: 0 },
+      {
+        autoAlpha: 1,
+        duration: 0.2,
+        ease: "power2.out",
+        delay: Number(item.dataset.introDelay || "0"),
+      }
+    );
+  });
 
-  const updateFloatingCards = () => {
-    floatingCards.forEach((card) => {
-      const depth = Number(card.dataset.depth || "1");
-      const x = pointerX * depth * 20;
-      const y = pointerY * depth * 16;
-      card.style.setProperty("--tx", `${x.toFixed(2)}px`);
-      card.style.setProperty("--ty", `${y.toFixed(2)}px`);
+  if (title) {
+    gsap.fromTo(
+      title,
+      { autoAlpha: 0, y: 20 },
+      { autoAlpha: 1, y: 0, duration: 0.2, ease: "power2.out", delay: 0.3 }
+    );
+  }
+
+  if (copy) {
+    gsap.fromTo(
+      copy,
+      { autoAlpha: 0, y: 20 },
+      { autoAlpha: 1, y: 0, duration: 0.2, ease: "power2.out", delay: 0.5 }
+    );
+  }
+
+  if (actions) {
+    gsap.fromTo(
+      actions,
+      { autoAlpha: 0, y: 20 },
+      { autoAlpha: 1, y: 0, duration: 0.2, ease: "power2.out", delay: 0.7 }
+    );
+  }
+};
+
+const initFloatingHero = () => {
+  const floatingRoot = document.querySelector("[data-floating-root]");
+
+  if (!floatingRoot || prefersReducedMotion) return;
+
+  const items = [...floatingRoot.querySelectorAll(".hero-float__item")].map((item) => ({
+    element: item,
+    depth: Number(item.dataset.depth || "1"),
+    current: { x: 0, y: 0 },
+  }));
+
+  const mousePosition = { x: 0, y: 0 };
+  const sensitivity = -0.5;
+  const easingFactor = 0.05;
+
+  const updatePosition = (clientX, clientY) => {
+    const rect = floatingRoot.getBoundingClientRect();
+    mousePosition.x = clientX - rect.left;
+    mousePosition.y = clientY - rect.top;
+  };
+
+  const tick = () => {
+    items.forEach((item) => {
+      const strength = (item.depth * sensitivity) / 20;
+      const targetX = mousePosition.x * strength;
+      const targetY = mousePosition.y * strength;
+      const dx = targetX - item.current.x;
+      const dy = targetY - item.current.y;
+
+      item.current.x += dx * easingFactor;
+      item.current.y += dy * easingFactor;
+
+      item.element.style.transform = `translate3d(${item.current.x.toFixed(2)}px, ${item.current.y.toFixed(2)}px, 0)`;
     });
 
-    rafId = 0;
+    window.requestAnimationFrame(tick);
   };
 
-  const queueFloatingUpdate = () => {
-    if (!rafId) {
-      rafId = window.requestAnimationFrame(updateFloatingCards);
-    }
-  };
-
-  const handlePointer = (event) => {
-    const rect = floatingRoot.getBoundingClientRect();
-    pointerX = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-    pointerY = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-    queueFloatingUpdate();
-  };
-
-  window.addEventListener("pointermove", handlePointer, { passive: true });
   window.addEventListener(
-    "pointerleave",
-    () => {
-      pointerX = 0;
-      pointerY = 0;
-      queueFloatingUpdate();
+    "mousemove",
+    (event) => {
+      updatePosition(event.clientX, event.clientY);
     },
     { passive: true }
   );
-}
 
-const parallaxSection = document.querySelector(".parallax");
+  window.addEventListener(
+    "touchmove",
+    (event) => {
+      const touch = event.touches[0];
+      if (touch) {
+        updatePosition(touch.clientX, touch.clientY);
+      }
+    },
+    { passive: true }
+  );
 
-if (parallaxSection && !prefersReducedMotion) {
-  const parallaxLayers = [...parallaxSection.querySelectorAll("[data-parallax-speed]")];
-  let parallaxFrame = 0;
+  tick();
+};
 
-  const updateParallax = () => {
-    const rect = parallaxSection.getBoundingClientRect();
-    const progress = clamp(
-      (window.innerHeight - rect.top) / (window.innerHeight + rect.height),
-      0,
-      1
-    );
+const initTextRotate = () => {
+  const target = document.querySelector("[data-text-rotate]");
 
-    parallaxLayers.forEach((layer) => {
-      const speed = Number(layer.dataset.parallaxSpeed || "0");
-      const travel = (progress - 0.5) * speed * 260;
-      const scale = 1 + speed * 0.08;
-      layer.style.transform = `translate3d(0, ${travel.toFixed(2)}px, 0) scale(${scale.toFixed(
-        3
-      )})`;
-    });
+  if (!target) return;
 
-    parallaxFrame = 0;
-  };
+  const words = parseDatasetArray(target.dataset.words);
+  const rotationInterval = Number(target.dataset.rotationInterval || "3000");
+  const staggerDuration = Number(target.dataset.staggerDuration || "0");
+  const staggerFrom = target.dataset.staggerFrom || "last";
 
-  const queueParallax = () => {
-    if (!parallaxFrame) {
-      parallaxFrame = window.requestAnimationFrame(updateParallax);
-    }
-  };
+  if (!words.length) return;
 
-  window.addEventListener("scroll", queueParallax, { passive: true });
-  window.addEventListener("resize", queueParallax);
-  queueParallax();
-}
+  let currentIndex = 0;
+  let currentLayer = null;
+  let intervalId = null;
 
-const carousel = document.querySelector("[data-carousel]");
+  const buildLayer = (text) => {
+    const layer = document.createElement("span");
+    layer.className = "hero-rotate__layer";
 
-if (carousel) {
-  const cards = [...carousel.querySelectorAll(".carousel__card")];
-  const prevButton = carousel.querySelector("[data-carousel-prev]");
-  const nextButton = carousel.querySelector("[data-carousel-next]");
-  const dotsContainer = document.querySelector("[data-carousel-dots]");
-  let activeIndex = Math.floor(cards.length / 2);
-  let autoplayId = 0;
+    const parts = text.split(" ");
+    const splitWords = parts.map((part) => splitIntoCharacters(part));
+    const totalChars = splitWords.reduce((sum, part) => sum + part.length, 0);
+    let charIndex = 0;
 
-  const wrappedOffset = (index) => {
-    let offset = index - activeIndex;
-    const total = cards.length;
+    splitWords.forEach((wordChars, wordPosition) => {
+      const word = document.createElement("span");
+      word.className = "hero-rotate__word";
 
-    if (offset > total / 2) {
-      offset -= total;
-    }
-
-    if (offset < -total / 2) {
-      offset += total;
-    }
-
-    return offset;
-  };
-
-  const updateCards = () => {
-    cards.forEach((card, index) => {
-      const offset = wrappedOffset(index);
-      const distance = Math.abs(offset);
-      const isCenter = offset === 0;
-      const isAdjacent = distance === 1;
-      const translateX = offset * 62;
-      const scale = isCenter ? 1 : isAdjacent ? 0.86 : 0.68;
-      const rotateY = offset * -16;
-      const opacity = isCenter ? 1 : isAdjacent ? 0.46 : 0;
-      const blur = isCenter ? 0 : isAdjacent ? 3 : 10;
-      const visibility = distance > 1 ? "hidden" : "visible";
-
-      card.style.transform = `translate(-50%, -50%) translateX(${translateX}%) scale(${scale}) rotateY(${rotateY}deg)`;
-      card.style.opacity = opacity;
-      card.style.filter = `blur(${blur}px)`;
-      card.style.zIndex = String(isCenter ? 10 : isAdjacent ? 5 : 1);
-      card.style.visibility = visibility;
-      card.setAttribute("aria-hidden", String(!isCenter));
-    });
-
-    if (dotsContainer) {
-      [...dotsContainer.querySelectorAll(".carousel__dot")].forEach((dot, index) => {
-        dot.classList.toggle("is-active", index === activeIndex);
+      wordChars.forEach((character) => {
+        const char = document.createElement("span");
+        char.className = "hero-rotate__char";
+        char.textContent = character;
+        char.style.transitionDelay = `${getStaggerDelay(
+          charIndex,
+          totalChars,
+          staggerFrom,
+          staggerDuration
+        )}s`;
+        word.appendChild(char);
+        charIndex += 1;
       });
-    }
-  };
 
-  const goTo = (index) => {
-    activeIndex = (index + cards.length) % cards.length;
-    updateCards();
-  };
+      layer.appendChild(word);
 
-  const startAutoplay = () => {
-    if (prefersReducedMotion || cards.length < 2) {
-      return;
-    }
-
-    stopAutoplay();
-    autoplayId = window.setInterval(() => goTo(activeIndex + 1), 4200);
-  };
-
-  const stopAutoplay = () => {
-    if (autoplayId) {
-      window.clearInterval(autoplayId);
-      autoplayId = 0;
-    }
-  };
-
-  if (dotsContainer) {
-    cards.forEach((_, index) => {
-      const dot = document.createElement("button");
-      dot.type = "button";
-      dot.className = "carousel__dot";
-      dot.setAttribute("aria-label", `Go to card ${index + 1}`);
-      dot.addEventListener("click", () => {
-        goTo(index);
-        startAutoplay();
-      });
-      dotsContainer.appendChild(dot);
+      if (wordPosition !== splitWords.length - 1) {
+        const space = document.createElement("span");
+        space.className = "hero-rotate__space";
+        space.textContent = " ";
+        layer.appendChild(space);
+      }
     });
+
+    return layer;
+  };
+
+  const swapLayer = (nextIndex) => {
+    const nextLayer = buildLayer(words[nextIndex]);
+    nextLayer.style.position = "relative";
+    nextLayer.style.visibility = "hidden";
+    target.appendChild(nextLayer);
+
+    const width = nextLayer.getBoundingClientRect().width;
+    const height = nextLayer.getBoundingClientRect().height;
+
+    target.style.width = `${Math.max(width, 1)}px`;
+    target.style.height = `${Math.max(height, 1)}px`;
+
+    nextLayer.style.position = "";
+    nextLayer.style.visibility = "";
+
+    requestAnimationFrame(() => {
+      nextLayer.classList.add("is-active");
+    });
+
+    if (currentLayer) {
+      currentLayer.classList.remove("is-active");
+      currentLayer.classList.add("is-exit");
+      const exitingLayer = currentLayer;
+      window.setTimeout(() => exitingLayer.remove(), 900);
+    }
+
+    currentLayer = nextLayer;
+    currentIndex = nextIndex;
+  };
+
+  swapLayer(0);
+
+  if (!prefersReducedMotion) {
+    intervalId = window.setInterval(() => {
+      const nextIndex = currentIndex === words.length - 1 ? 0 : currentIndex + 1;
+      swapLayer(nextIndex);
+    }, rotationInterval);
   }
 
+  window.addEventListener("beforeunload", () => {
+    if (intervalId) {
+      window.clearInterval(intervalId);
+    }
+  });
+};
+
+const initParallaxFallback = () => {
+  const triggerElement = document.querySelector("[data-parallax-layers]");
+
+  if (!triggerElement || prefersReducedMotion) return;
+
+  const layers = [
+    { selector: '[data-parallax-layer="1"]', amount: 70 },
+    { selector: '[data-parallax-layer="2"]', amount: 55 },
+    { selector: '[data-parallax-layer="3"]', amount: 40 },
+    { selector: '[data-parallax-layer="4"]', amount: 10 },
+  ];
+
+  let frame = 0;
+
+  const update = () => {
+    const rect = triggerElement.getBoundingClientRect();
+    const progress = clamp((window.innerHeight - rect.top) / (window.innerHeight + rect.height), 0, 1);
+
+    layers.forEach((layer) => {
+      const element = triggerElement.querySelector(layer.selector);
+      if (!element) return;
+      const yPercent = layer.amount * progress;
+      element.style.transform = `translate(-50%, calc(-50% + ${yPercent}%))`;
+    });
+
+    frame = 0;
+  };
+
+  const requestUpdate = () => {
+    if (!frame) {
+      frame = window.requestAnimationFrame(update);
+    }
+  };
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate);
+  requestUpdate();
+};
+
+const initParallax = () => {
+  const triggerElement = document.querySelector("[data-parallax-layers]");
+
+  if (!triggerElement) return;
+
+  if (window.gsap && window.ScrollTrigger && !prefersReducedMotion) {
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const timeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: triggerElement,
+        start: "top top",
+        end: "bottom top",
+        scrub: true,
+      },
+    });
+
+    [
+      { layer: "1", yPercent: 70 },
+      { layer: "2", yPercent: 55 },
+      { layer: "3", yPercent: 40 },
+      { layer: "4", yPercent: 10 },
+    ].forEach((layerObj, index) => {
+      timeline.to(
+        triggerElement.querySelectorAll(`[data-parallax-layer="${layerObj.layer}"]`),
+        {
+          yPercent: layerObj.yPercent,
+          ease: "none",
+        },
+        index === 0 ? 0 : "<"
+      );
+    });
+
+    if (window.Lenis) {
+      lenisScroller = new window.Lenis({
+        lerp: 0.09,
+        smoothWheel: true,
+      });
+
+      lenisScroller.on("scroll", ScrollTrigger.update);
+      gsap.ticker.add((time) => {
+        lenisScroller.raf(time * 1000);
+      });
+      gsap.ticker.lagSmoothing(0);
+    }
+
+    return;
+  }
+
+  initParallaxFallback();
+};
+
+const initCarousel = () => {
+  const carousel = document.querySelector("[data-carousel]");
+
+  if (!carousel) return;
+
+  const cards = [...carousel.querySelectorAll(".feature-carousel__card")];
+  const prevButton = carousel.querySelector("[data-carousel-prev]");
+  const nextButton = carousel.querySelector("[data-carousel-next]");
+  let currentIndex = Math.floor(cards.length / 2);
+  let timer = null;
+
+  const getPosition = (index) => {
+    const total = cards.length;
+    let pos = (index - currentIndex + total) % total;
+    if (pos > Math.floor(total / 2)) {
+      pos -= total;
+    }
+    return pos;
+  };
+
+  const render = () => {
+    cards.forEach((card, index) => {
+      const pos = getPosition(index);
+      const isCenter = pos === 0;
+      const isAdjacent = Math.abs(pos) === 1;
+
+      card.style.transform = `translate(-50%, -50%) translateX(${pos * 45}%) scale(${
+        isCenter ? 1 : isAdjacent ? 0.85 : 0.7
+      }) rotateY(${pos * -10}deg)`;
+      card.style.zIndex = String(isCenter ? 10 : isAdjacent ? 5 : 1);
+      card.style.opacity = isCenter ? "1" : isAdjacent ? "0.4" : "0";
+      card.style.filter = isCenter ? "blur(0px)" : "blur(4px)";
+      card.style.visibility = Math.abs(pos) > 1 ? "hidden" : "visible";
+    });
+  };
+
+  const next = () => {
+    currentIndex = (currentIndex + 1) % cards.length;
+    render();
+  };
+
+  const previous = () => {
+    currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+    render();
+  };
+
+  const start = () => {
+    if (prefersReducedMotion || cards.length < 2) return;
+    stop();
+    timer = window.setInterval(next, 4000);
+  };
+
+  const stop = () => {
+    if (timer) {
+      window.clearInterval(timer);
+      timer = null;
+    }
+  };
+
   prevButton?.addEventListener("click", () => {
-    goTo(activeIndex - 1);
-    startAutoplay();
+    previous();
+    start();
   });
 
   nextButton?.addEventListener("click", () => {
-    goTo(activeIndex + 1);
-    startAutoplay();
+    next();
+    start();
   });
 
-  carousel.addEventListener("mouseenter", stopAutoplay);
-  carousel.addEventListener("mouseleave", startAutoplay);
-  carousel.addEventListener("focusin", stopAutoplay);
-  carousel.addEventListener("focusout", startAutoplay);
+  carousel.addEventListener("mouseenter", stop);
+  carousel.addEventListener("mouseleave", start);
+  carousel.addEventListener("focusin", stop);
+  carousel.addEventListener("focusout", start);
 
-  updateCards();
-  startAutoplay();
-}
+  render();
+  start();
+};
 
-const gooeyRoot = document.querySelector("[data-gooey]");
+const initGooeyText = () => {
+  const gooeyRoot = document.querySelector("[data-gooey]");
 
-if (gooeyRoot) {
-  const texts = (gooeyRoot.dataset.texts || "")
-    .split("|")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
+  if (!gooeyRoot) return;
+
+  const texts = parseDatasetArray(gooeyRoot.dataset.texts);
+  const morphTime = Number(gooeyRoot.dataset.morphTime || "1");
+  const cooldownTime = Number(gooeyRoot.dataset.cooldownTime || "0.25");
   const textOne = gooeyRoot.querySelector("[data-gooey-primary]");
   const textTwo = gooeyRoot.querySelector("[data-gooey-secondary]");
 
-  if (textOne && textTwo && texts.length) {
-    let textIndex = texts.length - 1;
-    let lastTime = new Date();
-    let morph = 0;
-    let cooldown = 0.4;
-    const morphTime = 1;
-    const cooldownTime = 0.4;
+  if (!texts.length || !textOne || !textTwo) return;
 
-    const setMorph = (fraction) => {
-      const safeFraction = clamp(fraction, 0.0001, 1);
-      textTwo.style.filter = `blur(${Math.min(8 / safeFraction - 8, 100)}px)`;
-      textTwo.style.opacity = `${Math.pow(safeFraction, 0.4) * 100}%`;
+  let textIndex = texts.length - 1;
+  let time = new Date();
+  let morph = 0;
+  let cooldown = cooldownTime;
+  let frameId = 0;
 
-      const inverse = clamp(1 - fraction, 0.0001, 1);
-      textOne.style.filter = `blur(${Math.min(8 / inverse - 8, 100)}px)`;
-      textOne.style.opacity = `${Math.pow(inverse, 0.4) * 100}%`;
-    };
+  const setMorph = (fraction) => {
+    const safeFraction = clamp(fraction, 0.0001, 1);
+    textTwo.style.filter = `blur(${Math.min(8 / safeFraction - 8, 100)}px)`;
+    textTwo.style.opacity = `${Math.pow(safeFraction, 0.4) * 100}%`;
 
-    const doCooldown = () => {
-      morph = 0;
-      textTwo.style.filter = "";
-      textTwo.style.opacity = "100%";
-      textOne.style.filter = "";
-      textOne.style.opacity = "0%";
-    };
+    const inverse = clamp(1 - fraction, 0.0001, 1);
+    textOne.style.filter = `blur(${Math.min(8 / inverse - 8, 100)}px)`;
+    textOne.style.opacity = `${Math.pow(inverse, 0.4) * 100}%`;
+  };
 
-    const doMorph = () => {
-      morph -= cooldown;
-      cooldown = 0;
+  const doCooldown = () => {
+    morph = 0;
+    textTwo.style.filter = "";
+    textTwo.style.opacity = "100%";
+    textOne.style.filter = "";
+    textOne.style.opacity = "0%";
+  };
 
-      let fraction = morph / morphTime;
+  const doMorph = () => {
+    morph -= cooldown;
+    cooldown = 0;
 
-      if (fraction > 1) {
-        cooldown = cooldownTime;
-        fraction = 1;
-      }
+    let fraction = morph / morphTime;
 
-      setMorph(fraction);
-    };
-
-    const animate = () => {
-      const now = new Date();
-      const shouldAdvance = cooldown > 0;
-      const delta = (now.getTime() - lastTime.getTime()) / 1000;
-      lastTime = now;
-      cooldown -= delta;
-
-      if (cooldown <= 0) {
-        if (shouldAdvance) {
-          textIndex = (textIndex + 1) % texts.length;
-          textOne.textContent = texts[textIndex % texts.length];
-          textTwo.textContent = texts[(textIndex + 1) % texts.length];
-        }
-        doMorph();
-      } else {
-        doCooldown();
-      }
-
-      window.requestAnimationFrame(animate);
-    };
-
-    textOne.textContent = texts[textIndex];
-    textTwo.textContent = texts[(textIndex + 1) % texts.length];
-
-    if (prefersReducedMotion) {
-      textOne.style.opacity = "1";
-      textTwo.style.opacity = "0";
-    } else {
-      animate();
+    if (fraction > 1) {
+      cooldown = cooldownTime;
+      fraction = 1;
     }
+
+    setMorph(fraction);
+  };
+
+  const animate = () => {
+    frameId = window.requestAnimationFrame(animate);
+    const newTime = new Date();
+    const shouldIncrementIndex = cooldown > 0;
+    const dt = (newTime.getTime() - time.getTime()) / 1000;
+    time = newTime;
+
+    cooldown -= dt;
+
+    if (cooldown <= 0) {
+      if (shouldIncrementIndex) {
+        textIndex = (textIndex + 1) % texts.length;
+        textOne.textContent = texts[textIndex % texts.length];
+        textTwo.textContent = texts[(textIndex + 1) % texts.length];
+      }
+      doMorph();
+    } else {
+      doCooldown();
+    }
+  };
+
+  textOne.textContent = texts[textIndex];
+  textTwo.textContent = texts[(textIndex + 1) % texts.length];
+
+  if (prefersReducedMotion) {
+    textOne.style.opacity = "1";
+    textTwo.style.opacity = "0";
+    return;
   }
-}
 
-const revealItems = document.querySelectorAll(".reveal");
+  animate();
 
-if (revealItems.length) {
-  const revealObserver = new IntersectionObserver(
+  window.addEventListener("beforeunload", () => {
+    if (frameId) {
+      window.cancelAnimationFrame(frameId);
+    }
+  });
+};
+
+const initRevealObserver = () => {
+  const items = document.querySelectorAll(".reveal");
+
+  if (!items.length) return;
+
+  const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add("is-visible");
-          revealObserver.unobserve(entry.target);
+          observer.unobserve(entry.target);
         }
       });
     },
     {
-      threshold: 0.18,
+      threshold: 0.16,
       rootMargin: "0px 0px -8% 0px",
     }
   );
 
-  revealItems.forEach((item) => revealObserver.observe(item));
-}
+  items.forEach((item) => observer.observe(item));
+};
 
-const yearNode = document.querySelector("#year");
+const initAnchorLinks = () => {
+  [...document.querySelectorAll('a[href^="#"]')].forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const targetId = link.getAttribute("href");
+      if (!targetId || targetId === "#") return;
+      const target = document.querySelector(targetId);
+      if (!target) return;
 
-if (yearNode) {
-  yearNode.textContent = String(new Date().getFullYear());
-}
+      event.preventDefault();
+      closeMobileMenu();
+      scrollToTarget(target);
+    });
+  });
+};
+
+const initFooterYear = () => {
+  const yearNode = document.querySelector("#year");
+  if (yearNode) {
+    yearNode.textContent = String(new Date().getFullYear());
+  }
+};
+
+const init = () => {
+  initMenuToggle();
+  initDock();
+  initHeroIntro();
+  initFloatingHero();
+  initTextRotate();
+  initParallax();
+  initCarousel();
+  initGooeyText();
+  initRevealObserver();
+  initAnchorLinks();
+  initFooterYear();
+};
+
+init();

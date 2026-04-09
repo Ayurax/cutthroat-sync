@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="A single-page dark UI showcase that merges animated navigation, floating hero visuals, scroll parallax, a card carousel, gooey text morphing, and a stylized footer."
+      content="Animated one-page experience that restores the original floating hero, spring dock, GSAP parallax, photo carousel, gooey text morphing, and gaming-glass footer."
     />
-    <title>Afterglow UI Showcase</title>
+    <title>Afterglow Motion Lab</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -24,54 +24,64 @@
         <span class="brand__mark">A</span>
         <span class="brand__copy">
           <strong>Afterglow</strong>
-          <small>animated UI system</small>
+          <small>motion restore build</small>
         </span>
       </a>
 
-      <nav class="dock-nav" aria-label="Primary">
-        <a class="dock-nav__item" href="#hero" data-label="Hero">
-          <span class="dock-nav__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M4 18V10.5L12 4l8 6.5V18" />
-              <path d="M9 18v-4h6v4" />
-            </svg>
+      <nav class="dock-nav" data-dock aria-label="Primary">
+        <a class="dock-nav__item" href="#hero" aria-label="Hero">
+          <span class="dock-nav__icon-shell">
+            <span class="dock-nav__icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 18V10.5L12 4l8 6.5V18" />
+                <path d="M9 18v-4h6v4" />
+              </svg>
+            </span>
           </span>
           <span class="dock-nav__tooltip">Hero</span>
         </a>
-        <a class="dock-nav__item" href="#parallax" data-label="Parallax">
-          <span class="dock-nav__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M3 18 8.5 11l4 4L16 9l5 9" />
-              <path d="M3 18h18" />
-            </svg>
+        <a class="dock-nav__item" href="#parallax" aria-label="Parallax">
+          <span class="dock-nav__icon-shell">
+            <span class="dock-nav__icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 18 8.5 11l4 4L16 9l5 9" />
+                <path d="M3 18h18" />
+              </svg>
+            </span>
           </span>
           <span class="dock-nav__tooltip">Parallax</span>
         </a>
-        <a class="dock-nav__item" href="#showcase" data-label="Cards">
-          <span class="dock-nav__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M6 7h12a2 2 0 0 1 2 2v8H8a2 2 0 0 1-2-2z" />
-              <path d="M4 15V7a2 2 0 0 1 2-2h10" />
-            </svg>
+        <a class="dock-nav__item" href="#showcase" aria-label="Showcase">
+          <span class="dock-nav__icon-shell">
+            <span class="dock-nav__icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 7h12a2 2 0 0 1 2 2v8H8a2 2 0 0 1-2-2z" />
+                <path d="M4 15V7a2 2 0 0 1 2-2h10" />
+              </svg>
+            </span>
           </span>
           <span class="dock-nav__tooltip">Cards</span>
         </a>
-        <a class="dock-nav__item" href="#text-lab" data-label="Morph">
-          <span class="dock-nav__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M5 6h14" />
-              <path d="M8 6c0 4 2 6 4 7 2-1 4-3 4-7" />
-              <path d="M9 18h6" />
-            </svg>
+        <a class="dock-nav__item" href="#text-lab" aria-label="Text Morph">
+          <span class="dock-nav__icon-shell">
+            <span class="dock-nav__icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M5 6h14" />
+                <path d="M8 6c0 4 2 6 4 7 2-1 4-3 4-7" />
+                <path d="M9 18h6" />
+              </svg>
+            </span>
           </span>
           <span class="dock-nav__tooltip">Morph</span>
         </a>
-        <a class="dock-nav__item" href="#footer" data-label="Footer">
-          <span class="dock-nav__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M4 12c2.5-3.5 5-5.2 8-5.2s5.5 1.7 8 5.2" />
-              <path d="M4 12c2.5 3.5 5 5.2 8 5.2s5.5-1.7 8-5.2" />
-            </svg>
+        <a class="dock-nav__item" href="#footer" aria-label="Footer">
+          <span class="dock-nav__icon-shell">
+            <span class="dock-nav__icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 12c2.5-3.5 5-5.2 8-5.2s5.5 1.7 8 5.2" />
+                <path d="M4 12c2.5 3.5 5 5.2 8 5.2s5.5-1.7 8-5.2" />
+              </svg>
+            </span>
           </span>
           <span class="dock-nav__tooltip">Footer</span>
         </a>
@@ -98,7 +108,7 @@
       <a href="#hero">Hero</a>
       <a href="#parallax">Parallax</a>
       <a href="#showcase">Card Showcase</a>
-      <a href="#text-lab">Text Animation</a>
+      <a href="#text-lab">Text Morph</a>
       <a href="#footer">Footer</a>
     </div>
 
@@ -108,231 +118,228 @@
         <div class="hero__glow hero__glow--two" aria-hidden="true"></div>
 
         <div class="hero__floating" data-floating-root aria-hidden="true">
-          <figure class="hero-card hero-card--one" data-depth="0.55">
-            <img
-              src="https://images.unsplash.com/photo-1727341554370-80e0fe9ad082?auto=format&fit=crop&w=900&q=80"
-              alt=""
-            />
-          </figure>
-          <figure class="hero-card hero-card--two" data-depth="1">
-            <img
-              src="https://images.unsplash.com/photo-1640680608781-2e4199dd1579?auto=format&fit=crop&w=900&q=80"
-              alt=""
-            />
-          </figure>
-          <figure class="hero-card hero-card--three" data-depth="1.65">
-            <img
-              src="https://images.unsplash.com/photo-1726083085160-feeb4e1e5b00?auto=format&fit=crop&w=900&q=80"
-              alt=""
-            />
-          </figure>
-          <figure class="hero-card hero-card--four" data-depth="0.85">
-            <img
-              src="https://images.unsplash.com/photo-1562016600-ece13e8ba570?auto=format&fit=crop&w=900&q=80"
-              alt=""
-            />
-          </figure>
-          <figure class="hero-card hero-card--five" data-depth="1.1">
-            <img
-              src="https://images.unsplash.com/photo-1624344965199-ed40391d20f2?auto=format&fit=crop&w=900&q=80"
-              alt=""
-            />
-          </figure>
+          <div class="hero-float__item hero-float__item--one" data-depth="0.5" data-intro-delay="0.5">
+            <figure class="hero-card hero-card--one">
+              <img
+                src="https://images.unsplash.com/photo-1727341554370-80e0fe9ad082?auto=format&fit=crop&w=900&q=80"
+                alt="Black and white close portrait"
+              />
+            </figure>
+          </div>
+          <div class="hero-float__item hero-float__item--two" data-depth="1" data-intro-delay="0.7">
+            <figure class="hero-card hero-card--two">
+              <img
+                src="https://images.unsplash.com/photo-1640680608781-2e4199dd1579?auto=format&fit=crop&w=900&q=80"
+                alt="Neon botanical artwork"
+              />
+            </figure>
+          </div>
+          <div class="hero-float__item hero-float__item--three" data-depth="4" data-intro-delay="0.9">
+            <figure class="hero-card hero-card--three">
+              <img
+                src="https://images.unsplash.com/photo-1726083085160-feeb4e1e5b00?auto=format&fit=crop&w=900&q=80"
+                alt="Blurred crowd scene"
+              />
+            </figure>
+          </div>
+          <div class="hero-float__item hero-float__item--four" data-depth="2" data-intro-delay="1.1">
+            <figure class="hero-card hero-card--four">
+              <img
+                src="https://images.unsplash.com/photo-1562016600-ece13e8ba570?auto=format&fit=crop&w=900&q=80"
+                alt="Blue rippling water"
+              />
+            </figure>
+          </div>
+          <div class="hero-float__item hero-float__item--five" data-depth="1" data-intro-delay="1.3">
+            <figure class="hero-card hero-card--five">
+              <img
+                src="https://images.unsplash.com/photo-1624344965199-ed40391d20f2?auto=format&fit=crop&w=900&q=80"
+                alt="Portrait under a bright blue sky"
+              />
+            </figure>
+          </div>
         </div>
 
-        <div class="hero__content reveal">
-          <p class="eyebrow">Layered interactions for one polished landing page</p>
-          <h1 class="hero__title">
-            Build interfaces that feel
-            <span
-              class="hero-rotate"
-              data-rotate
-              data-words="alive|cinematic|playful|anime-lit|magnetic|delightfully extra"
-            ></span>
+        <div class="hero__content">
+          <h1 class="hero__title" data-hero-intro="title">
+            <span>Make your</span>
+            <span class="hero__title-row">
+              <span class="hero__title-static">website</span>
+              <span
+                class="hero-rotate"
+                data-text-rotate
+                data-rotation-interval="3000"
+                data-stagger-duration="0.03"
+                data-stagger-from="last"
+                data-words='["fancy","fun","lovely \u2665","weird","\ud83e\udea9 funky","\ud83d\udc83\ud83d\udd7a","sexy","\ud83d\udd76\ufe0f cool","go \ud83d\ude80","\ud83d\udd25\ud83d\udd25\ud83d\udd25","over-animated?","pop \u2728","rock \ud83e\udd18"]'
+              ></span>
+            </span>
           </h1>
-          <p class="hero__lede">
-            Every `.txt` concept from your project has been converted into one
-            coordinated dark UI experience with preserved motion, unified
-            styling, and responsive behavior.
+
+          <p class="hero__lede" data-hero-intro="copy">
+            With a growing library of ready-to-use components and
+            microinteractions. Free, open source, and now restored with the
+            original motion-heavy behavior intact.
           </p>
 
-          <div class="hero__actions">
-            <a class="button button--primary" href="#showcase">View Showcase</a>
-            <a class="button button--secondary" href="#text-lab">See Text Morph</a>
+          <div class="hero__actions" data-hero-intro="actions">
+            <a class="button button--light" href="#showcase">
+              Check docs <span aria-hidden="true">&rarr;</span>
+            </a>
+            <a
+              class="button button--blue"
+              href="https://github.com/Ayurax/experimenting-with-3d-web"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span aria-hidden="true">&#9733;</span> on GitHub
+            </a>
           </div>
-
-          <ul class="hero__stats" aria-label="Highlights">
-            <li>
-              <strong>7</strong>
-              <span>source concepts merged</span>
-            </li>
-            <li>
-              <strong>1</strong>
-              <span>shared stylesheet</span>
-            </li>
-            <li>
-              <strong>0</strong>
-              <span>animation conflicts left behind</span>
-            </li>
-          </ul>
         </div>
       </section>
 
-      <section class="parallax section" id="parallax">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Scroll area / parallax</p>
-          <h2>Depth that responds as the page moves</h2>
-          <p>
-            The original layered parallax idea is rebuilt with plain JavaScript
-            so it plays nicely with the rest of the page and stays smooth on
-            desktop and mobile.
-          </p>
-        </div>
-
-        <div class="parallax__layout">
-          <div class="parallax__visual reveal">
-            <div class="parallax__scene">
-              <div class="parallax__layers">
+      <section class="parallax-wrap" id="parallax">
+        <div class="parallax">
+          <section class="parallax__header">
+            <div class="parallax__visuals">
+              <div class="parallax__black-line-overflow"></div>
+              <div data-parallax-layers class="parallax__layers">
                 <img
-                  class="parallax__layer parallax__layer--back"
-                  data-parallax-speed="0.18"
-                  src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=80"
-                  alt="Neon skyline"
+                  src="https://cdn.prod.website-files.com/671752cd4027f01b1b8f1c7f/6717795be09b462b2e8ebf71_osmo-parallax-layer-3.webp"
+                  loading="eager"
+                  width="800"
+                  data-parallax-layer="1"
+                  alt=""
+                  class="parallax__layer-img"
                 />
                 <img
-                  class="parallax__layer parallax__layer--mid"
-                  data-parallax-speed="0.28"
-                  src="https://images.unsplash.com/photo-1519608425089-7f3bfa6f6bb8?auto=format&fit=crop&w=1200&q=80"
-                  alt="Night city lights"
+                  src="https://cdn.prod.website-files.com/671752cd4027f01b1b8f1c7f/6717795b4d5ac529e7d3a562_osmo-parallax-layer-2.webp"
+                  loading="eager"
+                  width="800"
+                  data-parallax-layer="2"
+                  alt=""
+                  class="parallax__layer-img"
                 />
-                <div class="parallax__title" data-parallax-speed="0.12">
-                  Parallel Motion
+                <div data-parallax-layer="3" class="parallax__layer-title">
+                  <h2 class="parallax__title">Parallax</h2>
                 </div>
                 <img
-                  class="parallax__layer parallax__layer--front"
-                  data-parallax-speed="0.42"
-                  src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80"
-                  alt="Crowd in colorful light"
+                  src="https://cdn.prod.website-files.com/671752cd4027f01b1b8f1c7f/6717795bb5aceca85011ad83_osmo-parallax-layer-1.webp"
+                  loading="eager"
+                  width="800"
+                  data-parallax-layer="4"
+                  alt=""
+                  class="parallax__layer-img"
                 />
               </div>
               <div class="parallax__fade"></div>
             </div>
-          </div>
+          </section>
 
-          <div class="parallax__copy reveal">
-            <article class="info-card">
-              <h3>Layer choreography</h3>
+          <section class="parallax__content section">
+            <div class="parallax__content-copy reveal">
+              <p class="eyebrow">Scroll Area / GSAP layers</p>
+              <h2>Original depth choreography restored</h2>
               <p>
-                Each image has its own scroll speed, giving the section depth
-                without bringing in a heavy framework or breaking smooth
-                navigation.
+                This section now uses the intended layered scroll movement with
+                GSAP and Lenis-style smooth scrolling instead of a simplified
+                transform approximation.
               </p>
-            </article>
-            <article class="info-card">
-              <h3>Unified motion language</h3>
-              <p>
-                Blur, glow, perspective, and easing values now share one visual
-                system so the page feels intentional instead of stitched
-                together.
-              </p>
-            </article>
-            <article class="info-card">
-              <h3>Responsive fallback</h3>
-              <p>
-                On smaller screens, the scene keeps its movement but reduces
-                intensity to protect readability and touch performance.
-              </p>
-            </article>
-          </div>
+            </div>
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="100%"
+              viewBox="0 0 160 160"
+              fill="none"
+              class="osmo-icon-svg reveal"
+            >
+              <path
+                d="M94.8284 53.8578C92.3086 56.3776 88 54.593 88 51.0294V0H72V59.9999C72 66.6273 66.6274 71.9999 60 71.9999H0V87.9999H51.0294C54.5931 87.9999 56.3777 92.3085 53.8579 94.8283L18.3431 130.343L29.6569 141.657L65.1717 106.142C67.684 103.63 71.9745 105.396 72 108.939V160L88.0001 160L88 99.9999C88 93.3725 93.3726 87.9999 100 87.9999H160V71.9999H108.939C105.407 71.9745 103.64 67.7091 106.12 65.1938L106.142 65.1716L141.657 29.6568L130.343 18.3432L94.8284 53.8578Z"
+                fill="currentColor"
+              ></path>
+            </svg>
+          </section>
         </div>
       </section>
 
       <section class="showcase section" id="showcase">
-        <div class="section-heading reveal">
+        <div class="showcase__heading reveal">
           <p class="eyebrow">Card photos showcase</p>
-          <h2>A rotating carousel with depth and hover polish</h2>
+          <h2>
+            Edit your
+            <span class="showcase__gradient"> Photos </span>
+            on the go
+          </h2>
           <p>
-            The card component has been translated into a centered photo
-            showcase with auto-play, manual controls, and perspective-driven
-            transforms.
+            The carousel is restored to the original 3D spread with timed
+            rotation, side blur, perspective transforms, and manual navigation.
           </p>
         </div>
 
-        <div class="carousel reveal" data-carousel>
-          <button class="carousel__button" type="button" data-carousel-prev aria-label="Previous card">
-            <span>&larr;</span>
-          </button>
+        <div class="showcase__stage reveal">
+          <div class="showcase__halo showcase__halo--left" aria-hidden="true"></div>
+          <div class="showcase__halo showcase__halo--right" aria-hidden="true"></div>
 
-          <div class="carousel__viewport">
-            <div class="carousel__track">
-              <article class="carousel__card">
-                <img
-                  src="https://images.unsplash.com/photo-1504051771394-dd2e66b2e08f?auto=format&fit=crop&w=900&q=80"
-                  alt="Portrait framed by city light"
-                />
-                <div class="carousel__meta">
-                  <h3>Midnight Portrait</h3>
-                  <p>Soft glow, focused detail, cinematic framing.</p>
-                </div>
-              </article>
-              <article class="carousel__card">
-                <img
-                  src="https://images.unsplash.com/photo-1526510747491-58f928ec870f?auto=format&fit=crop&w=900&q=80"
-                  alt="Mountain scene at dusk"
-                />
-                <div class="carousel__meta">
-                  <h3>Signal Horizon</h3>
-                  <p>Wide depth cues adapted from the original showcase.</p>
-                </div>
-              </article>
-              <article class="carousel__card">
-                <img
-                  src="https://plus.unsplash.com/premium_photo-1670282392820-e3590c1c5c54?auto=format&fit=crop&w=900&q=80"
-                  alt="Floral portrait in warm light"
-                />
-                <div class="carousel__meta">
-                  <h3>Bloom Static</h3>
-                  <p>Center-stage composition with the strongest emphasis.</p>
-                </div>
-              </article>
-              <article class="carousel__card">
-                <img
-                  src="https://images.unsplash.com/photo-1581403341630-a6e0b9d2d257?auto=format&fit=crop&w=900&q=80"
-                  alt="Person lit with vivid pink and blue"
-                />
-                <div class="carousel__meta">
-                  <h3>Neon Drift</h3>
-                  <p>Color-rich framing made for the dark theme palette.</p>
-                </div>
-              </article>
-              <article class="carousel__card">
-                <img
-                  src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80"
-                  alt="Portrait with a relaxed pose"
-                />
-                <div class="carousel__meta">
-                  <h3>Afterlight</h3>
-                  <p>Balanced contrast and edge blur for carousel depth.</p>
-                </div>
-              </article>
+          <div class="feature-carousel" data-carousel>
+            <button class="feature-carousel__button" type="button" data-carousel-prev aria-label="Previous image">
+              <svg viewBox="0 0 24 24">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+
+            <div class="feature-carousel__viewport">
+              <div class="feature-carousel__track">
+                <article class="feature-carousel__card">
+                  <img
+                    src="https://images.unsplash.com/photo-1504051771394-dd2e66b2e08f?auto=format&fit=crop&w=900&q=80"
+                    alt="Professional portrait of a woman"
+                  />
+                </article>
+                <article class="feature-carousel__card">
+                  <img
+                    src="https://images.unsplash.com/photo-1526510747491-58f928ec870f?auto=format&fit=crop&w=900&q=80"
+                    alt="Scenic landscape with mountains and a lake"
+                  />
+                </article>
+                <article class="feature-carousel__card">
+                  <img
+                    src="https://plus.unsplash.com/premium_photo-1670282392820-e3590c1c5c54?auto=format&fit=crop&w=900&q=80"
+                    alt="Artistic photo with flowers"
+                  />
+                </article>
+                <article class="feature-carousel__card">
+                  <img
+                    src="https://images.unsplash.com/photo-1581403341630-a6e0b9d2d257?auto=format&fit=crop&w=900&q=80"
+                    alt="Colorful neon portrait"
+                  />
+                </article>
+                <article class="feature-carousel__card">
+                  <img
+                    src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80"
+                    alt="Creative portrait from behind"
+                  />
+                </article>
+              </div>
             </div>
+
+            <button class="feature-carousel__button" type="button" data-carousel-next aria-label="Next image">
+              <svg viewBox="0 0 24 24">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
           </div>
-
-          <button class="carousel__button" type="button" data-carousel-next aria-label="Next card">
-            <span>&rarr;</span>
-          </button>
         </div>
-
-        <div class="carousel__dots" data-carousel-dots aria-label="Carousel position"></div>
       </section>
 
       <section class="text-lab section" id="text-lab">
-        <div class="section-heading reveal">
+        <div class="text-lab__heading reveal">
           <p class="eyebrow">Text morphing animation</p>
-          <h2>Gooey headline transitions without removing the effect</h2>
+          <h2>Gooey text restored with the original blur threshold effect</h2>
           <p>
-            The morph animation is kept intact and tuned for a full-width dark
-            layout so it remains readable while still feeling dramatic.
+            The morph logic now mirrors the source component more closely,
+            including cooldown timing, blur interpolation, and cleanup-safe
+            frame handling.
           </p>
         </div>
 
@@ -340,11 +347,13 @@
           <div
             class="gooey-text"
             data-gooey
-            data-texts="Design systems|Motion graphics|Frontend craft|Readable code|Playable interfaces"
+            data-texts='["Design","Engineering","Is","Awesome"]'
+            data-morph-time="1"
+            data-cooldown-time="0.25"
           >
             <svg class="gooey-text__defs" aria-hidden="true" focusable="false">
               <defs>
-                <filter id="gooey-threshold">
+                <filter id="threshold">
                   <feColorMatrix
                     in="SourceGraphic"
                     type="matrix"
@@ -356,76 +365,121 @@
                 </filter>
               </defs>
             </svg>
+
             <div class="gooey-text__stage">
               <span class="gooey-text__item" data-gooey-primary></span>
               <span class="gooey-text__item" data-gooey-secondary></span>
             </div>
           </div>
 
-          <div class="text-lab__aside">
+          <aside class="text-lab__aside">
             <p>
-              The morphing effect runs independently from the hero word-rotate
-              logic, which avoids timer conflicts and keeps both animations
-              stable on the same page.
+              Blur, opacity, and morph timing are now isolated to this
+              component so they no longer interfere with the hero rotation.
             </p>
-            <a class="button button--secondary" href="#footer">Jump to footer</a>
-          </div>
+            <a class="button button--ghost" href="#footer">Jump to footer</a>
+          </aside>
         </div>
       </section>
     </main>
 
     <footer class="site-footer" id="footer">
-      <div class="site-footer__glow site-footer__glow--left" aria-hidden="true"></div>
-      <div class="site-footer__glow site-footer__glow--right" aria-hidden="true"></div>
+      <div class="site-footer__bg site-footer__bg--left" aria-hidden="true"></div>
+      <div class="site-footer__bg site-footer__bg--right" aria-hidden="true"></div>
 
-      <div class="site-footer__panel reveal">
-        <div class="site-footer__brand">
-          <a class="brand brand--footer" href="#hero">
-            <span class="brand__mark">A</span>
-            <span class="brand__copy">
-              <strong>Afterglow</strong>
-              <small>gaming x anime aesthetics</small>
-            </span>
-          </a>
-          <p>
-            Neon glass panels, warm glow accents, and motion-rich sections now
-            live together in one cohesive one-page build.
-          </p>
-          <div class="social-links">
-            <a href="#hero" aria-label="Back to top">Top</a>
-            <a href="#parallax" aria-label="Go to parallax">Depth</a>
-            <a href="#showcase" aria-label="Go to showcase">Cards</a>
+      <div class="site-footer__glass reveal">
+        <div class="site-footer__hero">
+          <div class="site-footer__brand-block">
+            <a class="brand brand--footer" href="#hero">
+              <span class="brand__mark brand__mark--footer">A</span>
+              <span class="brand__copy">
+                <strong>Afterglow</strong>
+                <small>gaming x anime glass</small>
+              </span>
+            </a>
+            <p>
+              Reusable interface pieces, motion-rich interactions, and dark
+              glass styling merged into one restored landing page.
+            </p>
+            <div class="site-footer__socials">
+              <a href="#hero" aria-label="Back to hero">Top</a>
+              <a href="#parallax" aria-label="See parallax">Depth</a>
+              <a href="#showcase" aria-label="See showcase">Cards</a>
+            </div>
+          </div>
+
+          <nav class="site-footer__quicklinks" aria-label="Footer links">
+            <div>
+              <h3>Product</h3>
+              <a href="#hero">Features</a>
+              <a href="#showcase">Showcase</a>
+              <a href="#text-lab">Typography</a>
+              <a href="#footer">Updates</a>
+            </div>
+            <div>
+              <h3>Company</h3>
+              <a href="#hero">About</a>
+              <a href="#parallax">Motion</a>
+              <a href="#showcase">Gallery</a>
+              <a href="#footer">Contact</a>
+            </div>
+            <div>
+              <h3>Resources</h3>
+              <a href="#text-lab">Docs</a>
+              <a href="#footer">Support</a>
+              <a href="#footer">Community</a>
+              <a href="all%20text%20files/">Source files</a>
+            </div>
+          </nav>
+        </div>
+
+        <div class="site-footer__divider" aria-hidden="true"></div>
+
+        <div class="site-footer__columns">
+          <div class="site-footer__col site-footer__col--brand">
+            <h3>About Us</h3>
+            <p>
+              Building beautiful and functional web experiences with modern
+              techniques and animation-first interaction design.
+            </p>
+          </div>
+          <div class="site-footer__col">
+            <h3>Our Services</h3>
+            <a href="#hero">Web Development</a>
+            <a href="#showcase">Web Design</a>
+            <a href="#parallax">Motion Systems</a>
+            <a href="#text-lab">Interaction Polish</a>
+          </div>
+          <div class="site-footer__col">
+            <h3>Helpful Links</h3>
+            <a href="#hero">FAQs</a>
+            <a href="#showcase">Support</a>
+            <a href="#footer" class="site-footer__live-link">
+              Live Chat
+              <span class="site-footer__live-indicator" aria-hidden="true">
+                <span></span>
+                <span></span>
+              </span>
+            </a>
+          </div>
+          <div class="site-footer__col">
+            <h3>Contact Us</h3>
+            <a href="mailto:rajsinghania811214@gmail.com">rajsinghania811214@gmail.com</a>
+            <a href="tel:+918637373116">+91 8637373116</a>
+            <p>Kolkata, West Bengal, India</p>
           </div>
         </div>
 
-        <div class="site-footer__links">
-          <div>
-            <h3>Explore</h3>
-            <a href="#hero">Hero scene</a>
-            <a href="#parallax">Parallax scroll</a>
-            <a href="#showcase">Photo carousel</a>
-          </div>
-          <div>
-            <h3>System</h3>
-            <a href="#text-lab">Text morphing</a>
-            <a href="#footer">Animated footer</a>
-            <a href="all%20text%20files/">Source folder</a>
-          </div>
-          <div>
-            <h3>Signal</h3>
-            <p>Dark theme</p>
-            <p>Responsive layout</p>
-            <p>Shared JS architecture</p>
-          </div>
+        <div class="site-footer__bottom">
+          <span>All rights reserved.</span>
+          <span>&copy; <span id="year"></span> Afterglow</span>
         </div>
-      </div>
-
-      <div class="site-footer__bottom">
-        <span>All animations preserved and integrated.</span>
-        <span>&copy; <span id="year"></span> Afterglow UI</span>
       </div>
     </footer>
 
-    <script src="js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/bundled/lenis.min.js" defer></script>
+    <script src="js/script.js" defer></script>
   </body>
 </html>
