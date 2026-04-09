@@ -133,6 +133,7 @@ const initDock = () => {
   }));
 
   let mouseX = Number.POSITIVE_INFINITY;
+  let animationFrame = 0;
 
   const getTargetWidth = (distance) => {
     if (!Number.isFinite(mouseX)) return 40;
@@ -142,6 +143,8 @@ const initDock = () => {
   };
 
   const animateDock = () => {
+    let needsAnotherFrame = false;
+
     dockItems.forEach((item) => {
       const bounds = item.element.getBoundingClientRect();
       const center = bounds.left + bounds.width / 2;
@@ -159,20 +162,36 @@ const initDock = () => {
       const iconScale = 1 + ((item.current - 40) / 40) * 0.5;
       item.element.style.setProperty("--dock-size", `${item.current.toFixed(2)}px`);
       item.element.style.setProperty("--dock-icon-scale", iconScale.toFixed(3));
+
+      if (Math.abs(target - item.current) >= 0.02 || Math.abs(item.velocity) >= 0.02) {
+        needsAnotherFrame = true;
+      }
     });
 
-    window.requestAnimationFrame(animateDock);
+    if (needsAnotherFrame) {
+      animationFrame = window.requestAnimationFrame(animateDock);
+    } else {
+      animationFrame = 0;
+    }
+  };
+
+  const requestDockAnimation = () => {
+    if (!animationFrame) {
+      animationFrame = window.requestAnimationFrame(animateDock);
+    }
   };
 
   dock.addEventListener("pointermove", (event) => {
     mouseX = event.clientX;
+    requestDockAnimation();
   });
 
   dock.addEventListener("pointerleave", () => {
     mouseX = Number.POSITIVE_INFINITY;
+    requestDockAnimation();
   });
 
-  animateDock();
+  requestDockAnimation();
 };
 
 const initHeroIntro = () => {
@@ -239,9 +258,14 @@ const initFloatingHero = () => {
     current: { x: 0, y: 0 },
   }));
 
-  const mousePosition = { x: 0, y: 0 };
+  const mousePosition = {
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2,
+  };
   const sensitivity = -0.5;
   const easingFactor = 0.05;
+  let isActive = false;
+  let frameId = 0;
 
   const updatePosition = (clientX, clientY) => {
     const rect = floatingRoot.getBoundingClientRect();
@@ -250,6 +274,13 @@ const initFloatingHero = () => {
   };
 
   const tick = () => {
+    if (!isActive) {
+      frameId = 0;
+      return;
+    }
+
+    let needsAnotherFrame = false;
+
     items.forEach((item) => {
       const strength = (item.depth * sensitivity) / 20;
       const targetX = mousePosition.x * strength;
@@ -261,15 +292,30 @@ const initFloatingHero = () => {
       item.current.y += dy * easingFactor;
 
       item.element.style.transform = `translate3d(${item.current.x.toFixed(2)}px, ${item.current.y.toFixed(2)}px, 0)`;
+
+      if (Math.abs(dx) > 0.08 || Math.abs(dy) > 0.08) {
+        needsAnotherFrame = true;
+      }
     });
 
-    window.requestAnimationFrame(tick);
+    if (needsAnotherFrame) {
+      frameId = window.requestAnimationFrame(tick);
+    } else {
+      frameId = 0;
+    }
+  };
+
+  const requestTick = () => {
+    if (isActive && !frameId) {
+      frameId = window.requestAnimationFrame(tick);
+    }
   };
 
   window.addEventListener(
     "mousemove",
     (event) => {
       updatePosition(event.clientX, event.clientY);
+      requestTick();
     },
     { passive: true }
   );
@@ -280,12 +326,23 @@ const initFloatingHero = () => {
       const touch = event.touches[0];
       if (touch) {
         updatePosition(touch.clientX, touch.clientY);
+        requestTick();
       }
     },
     { passive: true }
   );
 
-  tick();
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      isActive = entry?.isIntersecting ?? false;
+      if (isActive) {
+        requestTick();
+      }
+    },
+    { threshold: 0.05 }
+  );
+
+  observer.observe(floatingRoot);
 };
 
 const initTextRotate = () => {
@@ -580,6 +637,7 @@ const initGooeyText = () => {
   let morph = 0;
   let cooldown = cooldownTime;
   let frameId = 0;
+  let isActive = false;
 
   const setMorph = (fraction) => {
     const safeFraction = clamp(fraction, 0.0001, 1);
@@ -614,6 +672,11 @@ const initGooeyText = () => {
   };
 
   const animate = () => {
+    if (!isActive) {
+      frameId = 0;
+      return;
+    }
+
     frameId = window.requestAnimationFrame(animate);
     const newTime = new Date();
     const shouldIncrementIndex = cooldown > 0;
@@ -643,7 +706,34 @@ const initGooeyText = () => {
     return;
   }
 
-  animate();
+  const startAnimation = () => {
+    if (!frameId) {
+      time = new Date();
+      frameId = window.requestAnimationFrame(animate);
+    }
+  };
+
+  const stopAnimation = () => {
+    if (frameId) {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+  };
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      isActive = entry?.isIntersecting ?? false;
+
+      if (isActive) {
+        startAnimation();
+      } else {
+        stopAnimation();
+      }
+    },
+    { threshold: 0.1 }
+  );
+
+  observer.observe(gooeyRoot);
 
   window.addEventListener("beforeunload", () => {
     if (frameId) {
@@ -690,6 +780,14 @@ const initAnchorLinks = () => {
   });
 };
 
+const initFooterPlaceholderLinks = () => {
+  [...document.querySelectorAll('.site-footer a[href="#"]')].forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+    });
+  });
+};
+
 const initFooterYear = () => {
   const yearNode = document.querySelector("#year");
   if (yearNode) {
@@ -708,6 +806,7 @@ const init = () => {
   initGooeyText();
   initRevealObserver();
   initAnchorLinks();
+  initFooterPlaceholderLinks();
   initFooterYear();
 };
 
